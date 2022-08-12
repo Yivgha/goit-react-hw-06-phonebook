@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import { VscTrash } from 'react-icons/vsc';
 import {
   ListContacts,
@@ -6,25 +5,32 @@ import {
   TextContacts,
   DeleteBtn,
 } from './Contacts.styled';
+import { useDispatch, useSelector } from 'react-redux';
+import { deleteContact, getContacts, getFilter } from 'redux/contactsSlice';
 
-export function Contacts({ contacts, onClick }) {
+export function Contacts() {
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilter);
+
+  const getFilteredContacts = () => {
+    const normalized = filter.toLowerCase();
+    return contacts.filter(contact => contact.name.toLowerCase().includes(normalized));
+  };
+  const visibleContacts = getFilteredContacts();
+
   return (
     <ListContacts>
-      {contacts.map(({ id, name, number }) => (
+      {visibleContacts.map(({ id, name, number }) => (
         <ItemContacts key={id}>
           <TextContacts>
             {name}: {number}
           </TextContacts>
-          <DeleteBtn onClick={() => onClick(id)}>
+          <DeleteBtn onClick={() => dispatch(deleteContact(id))}>
             <VscTrash />
           </DeleteBtn>
         </ItemContacts>
       ))}
     </ListContacts>
   );
-}
-
-Contacts.propTypes = {
-  contacts: PropTypes.array.isRequired,
-  onClick: PropTypes.func.isRequired,
 };

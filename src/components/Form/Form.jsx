@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { addContact, getContacts } from 'redux/contactsSlice';
 import { FormContact, Label, InputContact, ButtonContact } from './Form.styled';
 
-export function Form({onSubmit}) {
+export function Form() {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
+
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContacts);
+
   
   const handelInputChange = e => {
     const name = e.currentTarget.name;
@@ -24,8 +30,19 @@ export function Form({onSubmit}) {
   
   const onSubmitForm = e => {
     e.preventDefault();
-    onSubmit(name, number);
-    reset();
+
+    const isContact = contacts.find(
+      contact => contact.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (!isContact) {
+      dispatch(addContact({ name, number }));
+      reset();
+      return;
+    }
+
+    const notify = () => Notify.failure(`${name} is already in contacts`);
+    notify();    
   };
 
   const reset = () => {
@@ -63,13 +80,4 @@ export function Form({onSubmit}) {
         <ButtonContact type="submit">Add contact</ButtonContact>
       </FormContact>
     );
-  }
-
-Form.propTypes = {
-  state: PropTypes.objectOf(
-    PropTypes.shape({
-      name: PropTypes.string,
-      number: PropTypes.number,
-    })
-  ),
 };
